@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand, CommandFactory};
 use std::env;
 use std::fs;
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::process::Command;
 use std::collections::HashMap;
@@ -35,6 +35,10 @@ enum Commands {
         #[arg(help = "The command to use as the agent")]
         command: String,
     },
+    #[command(long_flag = "reset")]
+    #[command(about = "Reset all shortcuts (creates backup)")]
+    #[command(long_about = "Reset all shortcuts by clearing the aliases file. A backup will be created automatically. The agent setting is preserved.")]
+    Reset,
 }
 
 fn get_config_dir() -> PathBuf {
@@ -92,6 +96,46 @@ fn read_prompt_from_stdin() -> io::Result<String> {
     let mut buffer = String::new();
     io::stdin().read_to_string(&mut buffer)?;
     Ok(buffer.trim().to_string())
+}
+
+fn get_current_datetime() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    
+    // Convert to a simple datetime format: YYYYMMDD_HHMMSS
+    let datetime = chrono::DateTime::from_timestamp(timestamp as i64, 0)
+        .unwrap_or_else(|| chrono::Utc::now());
+    datetime.format("%Y%m%d_%H%M%S").to_string()
+}
+
+fn create_aliases_backup() -> io::Result<Option<String>> {
+    let aliases_file = get_aliases_file();
+    if !aliases_file.exists() {
+        return Ok(None);
+    }
+    
+    let config_dir = ensure_config_dir()?;
+    let datetime = get_current_datetime();
+    let backup_file = config_dir.join(format!("aliases_backup_{}.json", datetime));
+    
+    fs::copy(&aliases_file, &backup_file)?;
+    Ok(Some(backup_file.to_string_lossy().to_string()))
+}
+
+fn confirm_reset() -> bool {
+    print!("This will remove all shortcuts (a backup will be created). Are you sure? (y/N): ");
+    io::stdout().flush().unwrap();
+    
+    let mut input = String::new();
+    if io::stdin().read_line(&mut input).is_ok() {
+        let input = input.trim().to_lowercase();
+        input == "y" || input == "yes"
+    } else {
+        false
+    }
 }
 
 fn main() {
@@ -177,6 +221,36 @@ fn main() {
             }
             
             println!("Agent set to '{}'", command);
+        }
+        
+        Some(Commands::Reset) => {
+            if !confirm_reset() {
+                println!("Reset cancelled.");
+                return;
+            }
+            
+            match create_aliases_backup() {
+                Ok(Some(backup_path)) => {
+                    println!("Backup created: {}", backup_path);
+                }
+                Ok(None) => {
+                    println!("No existing aliases file to backup.");
+                }
+                Err(e) => {
+                    eprintln!("Error creating backup: {}", e);
+                    std::process::exit(1);
+                }
+            }
+            
+            let aliases_file = get_aliases_file();
+            if aliases_file.exists() {
+                if let Err(e) = fs::remove_file(&aliases_file) {
+                    eprintln!("Error removing aliases file: {}", e);
+                    std::process::exit(1);
+                }
+            }
+            
+            println!("All shortcuts have been reset.");
         }
         
         None => {
