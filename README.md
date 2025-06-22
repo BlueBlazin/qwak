@@ -259,7 +259,7 @@ Then restart your shell or source your configuration file.
 ## Requirements
 
 - Rust 1.70+ (for building from source)
-- An AI agent command-line tool (like `claude`, `gpt`, etc.)
+- An AI agent command-line tool (like `claude`, `codex`, etc.)
 
 ## Contributing
 
