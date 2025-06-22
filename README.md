@@ -46,7 +46,11 @@ cargo build --release
 Yes, I vibe coded this tool (sigh) including this README. But here is one example of how _I_ use this tool:
 
 ```sh
-qwk vite-react-swc -- --dangerously-skip-permissions
+qwk --agent "claude --dangerously-skip-permissions"
+```
+
+```sh
+qwk vite-react-swc
 ```
 
 with this prompt mapped to `vite-react-swc`:
@@ -180,14 +184,14 @@ qwk my-alias -- --temperature=0.7
 
 ## Commands
 
-| Command                      | Description                           |
-| ---------------------------- | ------------------------------------- |
-| `qwk <alias>`                | Execute a saved shortcut              |
-| `qwk <alias> -- <args>`      | Execute shortcut with agent arguments |
-| `qwk --set <alias> [prompt]` | Create or update a shortcut           |
+| Command                      | Description                                           |
+| ---------------------------- | ----------------------------------------------------- |
+| `qwk <alias>`                | Execute a saved shortcut                              |
+| `qwk <alias> -- <args>`      | Execute shortcut with agent arguments                 |
+| `qwk --set <alias> [prompt]` | Create or update a shortcut                           |
 | `qwk --agent <command>`      | Set the AI agent command (with optional default args) |
-| `qwk --reset`                | Reset all shortcuts (with backup)     |
-| `qwk --help`                 | Show help information                 |
+| `qwk --reset`                | Reset all shortcuts (with backup)                     |
+| `qwk --help`                 | Show help information                                 |
 
 ## Requirements
 
