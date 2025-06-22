@@ -1,4 +1,4 @@
-use qwk_agent::cli;
+use qwak::cli;
 
 fn main() {
     cli::run();
