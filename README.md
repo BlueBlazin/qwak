@@ -132,6 +132,12 @@ Set an agent with default arguments that will be passed on every call:
 qwk --agent "claude --dangerously-skip-permissions"
 ```
 
+Remove a specific shortcut:
+
+```bash
+qwk --remove my-alias
+```
+
 Reset all shortcuts (creates backup):
 
 ```bash
@@ -169,6 +175,16 @@ qwk --set docs "Generate comprehensive documentation for this code including usa
 qwk docs
 ```
 
+**Managing shortcuts:**
+
+```bash
+# Remove a shortcut you no longer need
+qwk --remove old-alias
+
+# Reset all shortcuts (creates backup first)
+qwk --reset
+```
+
 **Using agent with default arguments:**
 
 ```bash
@@ -190,6 +206,7 @@ qwk my-alias -- --temperature=0.7
 | `qwk <alias> -- <args>`      | Execute shortcut with agent arguments                 |
 | `qwk --set <alias> [prompt]` | Create or update a shortcut                           |
 | `qwk --agent <command>`      | Set the AI agent command (with optional default args) |
+| `qwk --remove <alias>`       | Remove a specific shortcut                            |
 | `qwk --reset`                | Reset all shortcuts (with backup)                     |
 | `qwk --help`                 | Show help information                                 |
 

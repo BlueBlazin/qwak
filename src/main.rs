@@ -35,6 +35,13 @@ enum Commands {
         #[arg(help = "The command to use as the agent (can include default arguments in quotes)")]
         command: String,
     },
+    #[command(long_flag = "remove")]
+    #[command(about = "Remove a specific shortcut")]
+    #[command(long_about = "Remove a specific shortcut by alias name. The shortcut will be permanently deleted from the aliases file.")]
+    Remove {
+        #[arg(help = "The alias name to remove")]
+        alias: String,
+    },
     #[command(long_flag = "reset")]
     #[command(about = "Reset all shortcuts (creates backup)")]
     #[command(long_about = "Reset all shortcuts by clearing the aliases file. A backup will be created automatically. The agent setting is preserved.")]
@@ -253,6 +260,20 @@ fn main() {
             }
             
             println!("Agent set to '{}'", command);
+        }
+        
+        Some(Commands::Remove { alias }) => {
+            let mut aliases = load_aliases();
+            
+            if aliases.remove(&alias).is_some() {
+                if let Err(e) = save_aliases(&aliases) {
+                    eprintln!("Error saving aliases after removal: {}", e);
+                    std::process::exit(1);
+                }
+                println!("Shortcut '{}' removed successfully", alias);
+            } else {
+                println!("Shortcut '{}' does not exist", alias);
+            }
         }
         
         Some(Commands::Reset) => {
