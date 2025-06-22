@@ -51,14 +51,14 @@ qwk vite-react-swc -- --dangerously-skip-permissions
 
 with this prompt mapped to `vite-react-swc`:
 
-```
+````
 Run `bun create vite . --template react-swc`
 Run `bun install`.
 Delete `src/assets/react.svg`, `public/vite.svg`, `App.css`
 Run `bun add styled-components`.
 Replace `src/index.css` with a very simple css reset containing just:
 
-\`\`\`css
+```css
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-synthesis: none;
@@ -72,12 +72,12 @@ Replace `src/index.css` with a very simple css reset containing just:
   padding: 0;
   box-sizing: border-box;
 }
-\`\`\`
+```
 
 Replace `src/App.jsx` with a simple component that creates a styled-components `Container` styled div and returns just `<Contianer>App</Container>`.
 Have `Container` in `src/App.jsx` take up 100vw and 100vh.
 
-```
+````
 
 ### Creating Shortcuts
 
@@ -178,3 +178,7 @@ qwk docs
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+```
+
+```
