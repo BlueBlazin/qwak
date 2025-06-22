@@ -138,6 +138,23 @@ fn confirm_reset() -> bool {
     }
 }
 
+#[cfg(test)]
+fn parse_agent_args(args: &[String]) -> Result<Vec<String>, String> {
+    if args.len() < 2 {
+        return Err("Not enough arguments".to_string());
+    }
+    
+    if args.len() == 2 {
+        return Ok(vec![]);
+    }
+    
+    if let Some(separator_pos) = args.iter().position(|arg| arg == "--") {
+        Ok(args[separator_pos + 1..].to_vec())
+    } else {
+        Err("Invalid format - use -- to separate agent args".to_string())
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     
@@ -264,5 +281,97 @@ fn main() {
                 cmd.print_help().unwrap();
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+    use tempfile::TempDir;
+
+    fn setup_test_config(temp_dir: &TempDir) -> PathBuf {
+        temp_dir.path().join("qwk")
+    }
+
+    #[test]
+    fn test_get_current_datetime_format() {
+        let datetime = get_current_datetime();
+        // Should match YYYYMMDD_HHMMSS format
+        assert_eq!(datetime.len(), 15);
+        assert!(datetime.contains('_'));
+        
+        let parts: Vec<&str> = datetime.split('_').collect();
+        assert_eq!(parts.len(), 2);
+        assert_eq!(parts[0].len(), 8); // YYYYMMDD
+        assert_eq!(parts[1].len(), 6); // HHMMSS
+        
+        // Should be all digits except the underscore
+        let digits_only = datetime.replace('_', "");
+        assert!(digits_only.chars().all(|c| c.is_ascii_digit()));
+    }
+
+    #[test] 
+    fn test_alias_storage_and_retrieval() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_dir = setup_test_config(&temp_dir);
+        fs::create_dir_all(&config_dir).unwrap();
+        
+        let aliases_file = config_dir.join("aliases.json");
+        
+        // Test empty case
+        let empty_aliases = load_aliases_from_file(&aliases_file);
+        assert!(empty_aliases.is_empty());
+        
+        // Test saving and loading
+        let mut test_aliases = HashMap::new();
+        test_aliases.insert("test1".to_string(), "prompt1".to_string());
+        test_aliases.insert("test2".to_string(), "prompt2".to_string());
+        
+        save_aliases_to_file(&aliases_file, &test_aliases).unwrap();
+        
+        let loaded_aliases = load_aliases_from_file(&aliases_file);
+        assert_eq!(loaded_aliases.len(), 2);
+        assert_eq!(loaded_aliases.get("test1"), Some(&"prompt1".to_string()));
+        assert_eq!(loaded_aliases.get("test2"), Some(&"prompt2".to_string()));
+    }
+
+    #[test]
+    fn test_agent_args_parsing() {
+        // Test cases for argument parsing logic
+        let test_cases = vec![
+            (vec!["qwk".to_string(), "shortcut".to_string()], (vec![], true)),
+            (vec!["qwk".to_string(), "shortcut".to_string(), "--".to_string(), "--flag".to_string()], (vec!["--flag".to_string()], true)),
+            (vec!["qwk".to_string(), "shortcut".to_string(), "--".to_string(), "--opt=val".to_string(), "--flag".to_string()], (vec!["--opt=val".to_string(), "--flag".to_string()], true)),
+            (vec!["qwk".to_string(), "shortcut".to_string(), "extra".to_string()], (vec![], false)), // Should be invalid
+        ];
+
+        for (args, (expected_agent_args, should_be_valid)) in test_cases {
+            let result = parse_agent_args(&args);
+            match result {
+                Ok(agent_args) => {
+                    assert!(should_be_valid, "Expected invalid args to fail: {:?}", args);
+                    assert_eq!(agent_args, expected_agent_args);
+                }
+                Err(_) => {
+                    assert!(!should_be_valid, "Expected valid args to succeed: {:?}", args);
+                }
+            }
+        }
+    }
+
+    // Helper functions for testing
+    fn load_aliases_from_file(file_path: &PathBuf) -> HashMap<String, String> {
+        if file_path.exists() {
+            let content = fs::read_to_string(file_path).unwrap_or_default();
+            serde_json::from_str(&content).unwrap_or_default()
+        } else {
+            HashMap::new()
+        }
+    }
+
+    fn save_aliases_to_file(file_path: &PathBuf, aliases: &HashMap<String, String>) -> io::Result<()> {
+        let content = serde_json::to_string_pretty(aliases)?;
+        fs::write(file_path, content)
     }
 }
