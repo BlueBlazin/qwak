@@ -30,9 +30,9 @@ enum Commands {
     },
     #[command(long_flag = "agent")]
     #[command(about = "Set the agent command to use")]
-    #[command(long_about = "Set the agent command to use when executing shortcuts. Defaults to 'claude'.")]
+    #[command(long_about = "Set the agent command to use when executing shortcuts. Can include default arguments that will be passed on every call. Defaults to 'claude'.")]
     Agent {
-        #[arg(help = "The command to use as the agent")]
+        #[arg(help = "The command to use as the agent (can include default arguments in quotes)")]
         command: String,
     },
     #[command(long_flag = "reset")]
@@ -83,6 +83,17 @@ fn get_agent() -> String {
         fs::read_to_string(&agent_file).unwrap_or_else(|_| "claude".to_string()).trim().to_string()
     } else {
         "claude".to_string()
+    }
+}
+
+fn parse_agent_command(agent_str: &str) -> (String, Vec<String>) {
+    match shlex::split(agent_str) {
+        Some(parts) if !parts.is_empty() => {
+            let command = parts[0].clone();
+            let args = parts[1..].to_vec();
+            (command, args)
+        }
+        _ => (agent_str.to_string(), vec![])
     }
 }
 
@@ -164,14 +175,15 @@ fn main() {
         let aliases = load_aliases();
         
         if let Some(prompt) = aliases.get(shortcut) {
-            let agent = get_agent();
+            let agent_str = get_agent();
+            let (agent_command, agent_default_args) = parse_agent_command(&agent_str);
             
-            // Check for -- separator and collect agent arguments
-            let mut agent_args = Vec::new();
+            // Check for -- separator and collect per-call agent arguments
+            let mut per_call_args = Vec::new();
             if args.len() > 2 {
                 if let Some(separator_pos) = args.iter().position(|arg| arg == "--") {
-                    // Everything after -- are agent arguments
-                    agent_args.extend_from_slice(&args[separator_pos + 1..]);
+                    // Everything after -- are per-call agent arguments
+                    per_call_args.extend_from_slice(&args[separator_pos + 1..]);
                 } else {
                     // Invalid format - too many args without --
                     eprintln!("Invalid usage. Use 'qwk {} -- <agent-args>' to pass arguments to the agent", shortcut);
@@ -179,9 +191,12 @@ fn main() {
                 }
             }
             
-            // Build command: agent [agent_args] prompt
-            let mut cmd = Command::new(&agent);
-            for arg in &agent_args {
+            // Build command: agent [default_args] [per_call_args] prompt
+            let mut cmd = Command::new(&agent_command);
+            for arg in &agent_default_args {
+                cmd.arg(arg);
+            }
+            for arg in &per_call_args {
                 cmd.arg(arg);
             }
             cmd.arg(prompt);
@@ -193,7 +208,7 @@ fn main() {
                     std::process::exit(exit_status.code().unwrap_or(0));
                 }
                 Err(e) => {
-                    eprintln!("Error executing agent '{}': {}", agent, e);
+                    eprintln!("Error executing agent '{}': {}", agent_command, e);
                     std::process::exit(1);
                 }
             }
@@ -334,6 +349,23 @@ mod tests {
         assert_eq!(loaded_aliases.len(), 2);
         assert_eq!(loaded_aliases.get("test1"), Some(&"prompt1".to_string()));
         assert_eq!(loaded_aliases.get("test2"), Some(&"prompt2".to_string()));
+    }
+
+    #[test]
+    fn test_parse_agent_command() {
+        let test_cases = vec![
+            ("claude", ("claude".to_string(), vec![])),
+            ("claude --flag", ("claude".to_string(), vec!["--flag".to_string()])),
+            ("claude --opt=value --flag", ("claude".to_string(), vec!["--opt=value".to_string(), "--flag".to_string()])),
+            ("\"quoted command\" arg", ("quoted command".to_string(), vec!["arg".to_string()])),
+            ("", ("".to_string(), vec![])),
+        ];
+
+        for (input, (expected_command, expected_args)) in test_cases {
+            let (command, args) = parse_agent_command(input);
+            assert_eq!(command, expected_command, "Command mismatch for input: {}", input);
+            assert_eq!(args, expected_args, "Args mismatch for input: {}", input);
+        }
     }
 
     #[test]

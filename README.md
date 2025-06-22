@@ -122,6 +122,12 @@ Set the AI agent command (default: `claude`):
 qwk --agent your-agent-command
 ```
 
+Set an agent with default arguments that will be passed on every call:
+
+```bash
+qwk --agent "claude --dangerously-skip-permissions"
+```
+
 Reset all shortcuts (creates backup):
 
 ```bash
@@ -159,6 +165,19 @@ qwk --set docs "Generate comprehensive documentation for this code including usa
 qwk docs
 ```
 
+**Using agent with default arguments:**
+
+```bash
+# Set agent with default args that apply to every call
+qwk --agent "claude --dangerously-skip-permissions --max-tokens=2000"
+
+# This will execute: claude --dangerously-skip-permissions --max-tokens=2000 "your prompt"
+qwk my-alias
+
+# This will execute: claude --dangerously-skip-permissions --max-tokens=2000 --temperature=0.7 "your prompt"
+qwk my-alias -- --temperature=0.7
+```
+
 ## Commands
 
 | Command                      | Description                           |
@@ -166,7 +185,7 @@ qwk docs
 | `qwk <alias>`                | Execute a saved shortcut              |
 | `qwk <alias> -- <args>`      | Execute shortcut with agent arguments |
 | `qwk --set <alias> [prompt]` | Create or update a shortcut           |
-| `qwk --agent <command>`      | Set the AI agent command              |
+| `qwk --agent <command>`      | Set the AI agent command (with optional default args) |
 | `qwk --reset`                | Reset all shortcuts (with backup)     |
 | `qwk --help`                 | Show help information                 |
 
