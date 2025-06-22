@@ -35,9 +35,15 @@ cargo build --release
    ```
 
 3. **Run your shortcut:**
+
    ```bash
    qwk react-setup
    ```
+
+4. **Enjoy autocompletion:**
+   - Autocompletion is set up automatically on first run
+   - Tab-complete shortcuts: `qwk <TAB>` shows all available shortcuts
+   - Tab-complete commands: `qwk --<TAB>` shows all available commands
 
 ## Usage
 
@@ -80,7 +86,6 @@ Replace `src/index.css` with a very simple css reset containing just:
 
 Replace `src/App.jsx` with a simple component that creates a styled-components `Container` styled div and returns just `<Contianer>App</Container>`.
 Have `Container` in `src/App.jsx` take up 100vw and 100vh.
-
 ````
 
 ### Creating Shortcuts
@@ -142,6 +147,12 @@ Remove a specific shortcut:
 
 ```bash
 qwk --remove my-alias
+```
+
+Set up autocompletion manually (usually automatic):
+
+```bash
+qwk --setup-completion
 ```
 
 Reset all shortcuts (creates backup):
@@ -207,6 +218,30 @@ qwk my-alias
 qwk my-alias -- --temperature=0.7
 ```
 
+## Autocompletion
+
+Qwk automatically sets up shell autocompletion on first run for bash, zsh, and fish. This provides:
+
+- **Dynamic shortcut completion**: Tab-complete any shortcut name
+- **Command completion**: Tab-complete all `--` commands
+- **Always up-to-date**: Completions automatically sync with your shortcuts
+
+### Supported Shells
+
+- **Bash**: Adds completion to `~/.bashrc` or `~/.bash_profile`
+- **Zsh**: Adds completion to `~/.zshrc`
+- **Fish**: Adds completion to `~/.config/fish/config.fish`
+
+### Manual Setup
+
+If autocompletion wasn't set up automatically:
+
+```bash
+qwk --setup-completion
+```
+
+Then restart your shell or source your configuration file.
+
 ## Commands
 
 | Command                      | Description                                           |
@@ -215,8 +250,9 @@ qwk my-alias -- --temperature=0.7
 | `qwk <alias> -- <args>`      | Execute shortcut with agent arguments                 |
 | `qwk --set <alias> [prompt]` | Create or update a shortcut                           |
 | `qwk --agent <command>`      | Set the AI agent command (with optional default args) |
-| `qwk --list`                 | List all available shortcuts with previews           |
+| `qwk --list`                 | List all available shortcuts with previews            |
 | `qwk --remove <alias>`       | Remove a specific shortcut                            |
+| `qwk --setup-completion`     | Set up shell autocompletion manually                  |
 | `qwk --reset`                | Reset all shortcuts (with backup)                     |
 | `qwk --help`                 | Show help information                                 |
 
