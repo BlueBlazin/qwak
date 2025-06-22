@@ -9,7 +9,7 @@ Qwk-Agent allows you to save frequently used AI prompts as shortcuts and execute
 ## Installation
 
 ```bash
-cargo install qwk
+cargo install qwk-agent
 ```
 
 Or build from source:
