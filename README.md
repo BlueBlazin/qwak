@@ -175,10 +175,6 @@ qwk docs
 - Rust 1.70+ (for building from source)
 - An AI agent command-line tool (like `claude`, `gpt`, etc.)
 
-## License
-
-MIT License - see LICENSE file for details.
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
