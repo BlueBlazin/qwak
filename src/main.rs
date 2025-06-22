@@ -35,6 +35,10 @@ enum Commands {
         #[arg(help = "The command to use as the agent (can include default arguments in quotes)")]
         command: String,
     },
+    #[command(long_flag = "list")]
+    #[command(about = "List all available shortcuts")]
+    #[command(long_about = "List all available shortcuts with their alias names and a preview of their associated prompts.")]
+    List,
     #[command(long_flag = "remove")]
     #[command(about = "Remove a specific shortcut")]
     #[command(long_about = "Remove a specific shortcut by alias name. The shortcut will be permanently deleted from the aliases file.")]
@@ -101,6 +105,37 @@ fn parse_agent_command(agent_str: &str) -> (String, Vec<String>) {
             (command, args)
         }
         _ => (agent_str.to_string(), vec![])
+    }
+}
+
+fn truncate_prompt(prompt: &str, max_length: usize) -> String {
+    // Replace newlines and multiple spaces with single spaces for display
+    let cleaned = prompt.replace('\n', " ").split_whitespace().collect::<Vec<_>>().join(" ");
+    
+    if cleaned.len() <= max_length {
+        cleaned
+    } else {
+        format!("{}...", &cleaned[..max_length.saturating_sub(3)])
+    }
+}
+
+fn list_aliases() {
+    let aliases = load_aliases();
+    
+    if aliases.is_empty() {
+        println!("No shortcuts available.");
+        return;
+    }
+    
+    println!("Available shortcuts:");
+    
+    // Sort aliases by name for consistent output
+    let mut sorted_aliases: Vec<_> = aliases.iter().collect();
+    sorted_aliases.sort_by_key(|(name, _)| *name);
+    
+    for (alias, prompt) in sorted_aliases {
+        let truncated_prompt = truncate_prompt(prompt, 60);
+        println!("  {} - {}", alias, truncated_prompt);
     }
 }
 
@@ -262,6 +297,10 @@ fn main() {
             println!("Agent set to '{}'", command);
         }
         
+        Some(Commands::List) => {
+            list_aliases();
+        }
+        
         Some(Commands::Remove { alias }) => {
             let mut aliases = load_aliases();
             
@@ -370,6 +409,30 @@ mod tests {
         assert_eq!(loaded_aliases.len(), 2);
         assert_eq!(loaded_aliases.get("test1"), Some(&"prompt1".to_string()));
         assert_eq!(loaded_aliases.get("test2"), Some(&"prompt2".to_string()));
+    }
+
+    #[test]
+    fn test_truncate_prompt() {
+        // Test short prompt (no truncation)
+        assert_eq!(truncate_prompt("Short prompt", 50), "Short prompt");
+        
+        // Test exact length (no truncation)
+        assert_eq!(truncate_prompt("Exactly fifty characters long for testing here", 47), "Exactly fifty characters long for testing here");
+        
+        // Test long prompt (with truncation)
+        assert_eq!(truncate_prompt("This is a very long prompt that should be truncated", 20), "This is a very lo...");
+        
+        // Test prompt with newlines (should be cleaned)
+        assert_eq!(truncate_prompt("Line one\nLine two\nLine three", 50), "Line one Line two Line three");
+        
+        // Test prompt with multiple spaces (should be cleaned)
+        assert_eq!(truncate_prompt("Multiple    spaces   should   be   cleaned", 50), "Multiple spaces should be cleaned");
+        
+        // Test empty prompt
+        assert_eq!(truncate_prompt("", 10), "");
+        
+        // Test very short max_length
+        assert_eq!(truncate_prompt("Hello world", 5), "He...");
     }
 
     #[test]
