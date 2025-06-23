@@ -8,6 +8,7 @@ license = "MIT"
 keywords = ["ai", "agents"]
 categories = ["command-line-utilities"]
 readme = "README.md"
+exclude = ["CLAUDE.md"]
 
 [[bin]]
 name = "qwk"
