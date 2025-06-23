@@ -2,6 +2,12 @@
 name = "qwak"
 version = "0.1.0"
 edition = "2024"
+description = "Quick agentic aliases."
+repository = "https://github.com/BlueBlazin/qwak"
+license = "MIT"
+keywords = ["ai", "agents"]
+categories = ["command-line-utilities"]
+readme = "README.md"
 
 [[bin]]
 name = "qwk"

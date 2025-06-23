@@ -35,7 +35,7 @@ pub fn get_current_datetime() -> String {
 
     // Convert to a simple datetime format: YYYYMMDD_HHMMSS
     let datetime =
-        chrono::DateTime::from_timestamp(timestamp as i64, 0).unwrap_or_else(|| chrono::Utc::now());
+        chrono::DateTime::from_timestamp(timestamp as i64, 0).unwrap_or_else(chrono::Utc::now);
     datetime.format("%Y%m%d_%H%M%S").to_string()
 }
 

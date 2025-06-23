@@ -2,6 +2,13 @@
 
 A command-line tool for creating shortcuts to AI agent prompts. Store agentic prompts as simple aliases and execute them with your preferred AI agent.
 
+You can create a shortcut like `fastapi` and provide one-time instructions on what it should do. From then on you can just run:
+
+```bash
+qwk fastapi
+# Claude starts installing FastAPI, create your custom boilerplate, etc.
+```
+
 ## Overview
 
 Qwak allows you to save frequently used AI prompts as shortcuts and execute them quickly. Instead of retyping long prompts or searching through your history, create an alias once and run it with a simple command.
